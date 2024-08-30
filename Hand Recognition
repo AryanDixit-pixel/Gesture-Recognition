@@ -1,0 +1,242 @@
+import cv2
+import mediapipe as mp
+import pyautogui as p
+import time
+
+# print(pyautogui.size())
+
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_hands = mp.solutions.hands
+
+# def right_swipe():
+# 	if()
+
+
+# defining variables for tracking hand changes throughout different frames in time
+fingers_open = False
+fingers_closed = False
+index_open = False
+index_closed = False
+middle_open = False
+middle_closed = False
+ring_open = False
+ring_closed = False
+pinky_open = False
+pinky_closed = False
+
+# i1 is index finger MCP
+# i2 is index finger TIP
+#similarly variables are defined for rest of the fingers 
+i1 = 0
+i2 = 0
+m1 = 0
+m2 = 0
+r1 = 0
+r2 = 0
+p1 = 0
+p2 = 0
+
+x1_prev_2 = 0
+x2_prev_2 = 0
+x3_prev_2 = 0
+x4_prev_2 = 0
+x1_curr_2 = 0
+x2_curr_2 = 0
+x3_curr_2 = 0
+x4_curr_2 = 0
+diff_1 = 0
+diff_2 = 0
+diff_3 = 0
+diff_4 = 0
+
+# add a variable to capture time
+period_2 = 10
+cumsum_1 = 50
+cumsum_2 = 50
+cumsum_3 = 50
+cumsum_4 = 50
+i = 0
+a1 = [0]*10
+a2 = [0]*10
+a3 = [0]*10
+a4 = [0]*10
+
+
+#Webcam input
+cap = cv2.VideoCapture(0)
+#cv2.namedWindow("Mediapipe_Hands", cv2.WINDOW_NORMAL)
+with mp_hands.Hands(model_complexity=0,
+	min_detection_confidence=0.5,
+	min_tracking_confidence=0.5) as hands:
+	i=0
+	while cap.isOpened():
+		success, image = cap.read()
+		if not success:
+			print("Ingnoring empty camera frame.")
+			continue
+		image.flags.writeable = True
+		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+		results = hands.process(image)
+
+		#Drawing annotations
+		image.flags.writeable = True
+		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+		image_height, image_width, _ = image.shape
+
+		if results.multi_hand_landmarks:
+			for hand_landmarks in results.multi_hand_landmarks:
+				mp_drawing.draw_landmarks(
+					image,
+					hand_landmarks,
+					mp_hands.HAND_CONNECTIONS,
+					mp_drawing_styles.get_default_hand_landmarks_style(),
+					mp_drawing_styles.get_default_hand_connections_style())
+				# print(mp_hands.HandLandmark)
+# Handmark point names
+# WRIST:
+# THUMB_CMC:
+# THUMB_MCP:
+# THUMB_IP:
+# THUMB_TIP:
+# INDEX_FINGER_MCP:
+# INDEX_FINGER_PIP:
+# INDEX_FINGER_DIP:
+# INDEX_FINGER_TIP:
+# MIDDLE_FINGER_MCP:
+# MIDDLE_FINGER_PIP:
+# MIDDLE_FINGER_DIP:
+# MIDDLE_FINGER_TIP:
+# RING_FINGER_MCP:
+# RING_FINGER_PIP:
+# RING_FINGER_DIP:
+# RING_FINGER_TIP:
+# PINKY_MCP:
+# PINKY_PIP:
+# PINKY_DIP:
+# PINKY_TIP:
+				
+				x1 = hand_landmarks.landmark[7].x*image_width
+				x2 = hand_landmarks.landmark[11].x*image_width
+				# print("Difference between index finder tip and middle finger tip", x1-x2)
+				# print("Fingers Open: ", fingers_open)
+				# print("Fingers Closed: ", fingers_closed)
+
+				#defining for individual fingers
+				i1 = hand_landmarks.landmark[5].x*image_width
+				i2 = hand_landmarks.landmark[8].x*image_width
+				m1 = hand_landmarks.landmark[9].x*image_width
+				m2 = hand_landmarks.landmark[12].x*image_width
+				r1 = hand_landmarks.landmark[13].x*image_width
+				r2 = hand_landmarks.landmark[16].x*image_width
+				p1 = hand_landmarks.landmark[17].x*image_width
+				p2 = hand_landmarks.landmark[20].x*image_width
+				# print("Index TIP: ", i1, "	Index MCP: ", i2, "	Difference: ", (i1-i2))
+				# print("Middle TIP: ", m1, "	Middle MCP: ", m2, "	Difference: ", (m1-m2))
+				# print("Ring TIP: ", r1, "	Ring MCP: ", r2, "	Difference: ", (r1-r2))
+				# print("Pinky TIP: ", p1, "	Pinky MCP: ", p2, "	Difference: ", (p1-p2))
+
+
+				diff=abs(x1-x2)
+				if(diff>100):
+					fingers_open = True
+					fingers_closed = False
+				if(diff<50):
+					fingers_closed = True
+				if(fingers_open and fingers_closed):
+					#scrolling
+					for s in range(1):
+					    p.scroll(-1)
+					    time.sleep(0.0000005)
+					print("fingers open-close recognized")
+					fingers_closed = False
+					fingers_open = False
+				# Let's start adding fucnctionality ab 
+				# if(this and that):
+				# 	p.screenshot()
+
+				#Code to help identify which finger part is labelled with what index in mediapipe hands code
+				# Let's see all the coordinates for the index finger
+				# x1 = round(hand_landmarks.landmark[17].x*image_width,3)
+				# x2 = round(hand_landmarks.landmark[18].x*image_width,3)
+				# x3 = round(hand_landmarks.landmark[19].x*image_width,3)
+				# x4 = round(hand_landmarks.landmark[20].x*image_width,3)
+				# y1 = round(hand_landmarks.landmark[17].x*image_height,3)
+				# y2 = round(hand_landmarks.landmark[18].x*image_height,3)
+				# y3 = round(hand_landmarks.landmark[19].x*image_height,3)
+				# y4 = round(hand_landmarks.landmark[20].x*image_height,3)
+				# print("X's: ", x1,"		",x2,"		",x3,"		",x4,"		")
+				# print("Y's: ", y1,"		",y2,"		",y3,"		",y4,"		")
+				# print(" ")
+
+				# Swiping Motion - Motion#2
+				x1_curr_2 = round(hand_landmarks.landmark[8].x*image_width,3)
+				x2_curr_2 = round(hand_landmarks.landmark[12].x*image_width,3)
+				x3_curr_2 = round(hand_landmarks.landmark[16].x*image_width,3)
+				x4_curr_2 = round(hand_landmarks.landmark[20].x*image_width,3)
+				diff_1 = abs(x1_curr_2 - x1_prev_2)
+
+				if(diff_1<400 and i>0):
+					cumsum_1 = cumsum_1+diff_1-a1[i%10]
+					a1[(i)%10] = round(diff_1,3)
+				diff_2 = abs(x2_curr_2 - x2_prev_2)
+				if(diff_2<400 and i>0):
+					cumsum_2 = cumsum_2+diff_2-a2[i%10]
+					a2[(i)%10] = round(diff_2,3)
+				diff_3 = abs(x3_curr_2 - x3_prev_2)
+				if(diff_3<400 and i>0):
+					cumsum_3 = cumsum_3+diff_3-a3[i%10]
+					a3[(i)%10] = round(diff_3,3)
+				diff_4 = abs(x4_curr_2 - x4_prev_2)
+				if(diff_4<400 and i>0):
+					cumsum_4 = cumsum_4+diff_4-a4[i%10]
+					a4[(i)%10] = round(diff_4,3)
+				
+				
+				
+
+				x1_prev_2 = x1_curr_2
+				x2_prev_2 = x2_curr_2
+				x3_prev_2 = x3_curr_2
+				x4_prev_2 = x4_curr_2
+				if(cumsum_1>600 or cumsum_2>600 or cumsum_3>600 or cumsum_4>600):
+					#Do the changes to the screen
+					print("Gesture Recognized")
+
+				print("Differences",round(diff_1,3),"	",round(diff_2,3),"	",round(diff_3,3),"	",round(diff_4,3),"	")
+				print("Cumsums",round(cumsum_1,3),"	",round(cumsum_2,3),"	",round(cumsum_3,3),"	",round(cumsum_4,3),"	")
+				print(a1)
+				print(a2)
+				print(a3)
+				print(a4)
+				print("I: ",i)
+
+				i = i+1
+		else:
+			i=0
+			a1 = [0]*10
+			a2 = [0]*10
+			a3 = [0]*10
+			a4 = [0]*10
+			cumsum_1 = 0
+			cumsum_2 = 0
+			cumsum_3 = 0
+			cumsum_4 = 0
+
+
+		#Flip
+		cv2.imshow("Mediapipe_Hands", cv2.flip(image, 1))
+		#To save the frame if you want, go to waitkey(1000) for fun
+		#cv2.imwrite("frame%d.jpg" % count, image) 
+		if (cv2.waitKey(5) & 0xFF) == ord('q'):
+			print("Out finally")
+			break
+cap.release()
+#cv2.destroyAllWindows()
+# Detect individual hands and run functions specific to them
+# Lets add hands identification individual to this
+# Add reversible motions too for each one, for left and for right parts
+# Add a open hand recognition for screenshot
+# Add eyes library to sort out gestures with blinking 
+	# Identify blinking - single eyed, double eyed
+	# Identify 
